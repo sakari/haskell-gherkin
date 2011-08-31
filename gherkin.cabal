@@ -1,0 +1,23 @@
+Name:                gherkin
+Version:             0.1
+Synopsis:            Gherkin parser in haskell
+License:             BSD3
+License-file:        LICENSE
+Author:              Sakari Jokinen
+Maintainer:          sakariij@gmail.com
+Category:            Parser
+Build-type:          Simple
+Cabal-version:       >=1.2
+
+Library
+  Exposed-modules: Language.Gherkin  
+  		     
+  -- Packages needed in order to build this package.
+  -- Build-depends:       
+  
+  -- Modules not exported by this package.
+  -- Other-modules:       
+  
+  -- Extra tools (e.g. alex, hsc2hs, ...) needed to build the source.
+  -- Build-tools:         
+  
