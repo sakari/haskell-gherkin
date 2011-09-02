@@ -49,7 +49,7 @@ data BlockArg = BlockTable Table
                          
 parseFeature :: Parser Feature
 parseFeature = do
-  tags <- line $ parseTag `sepBy` ws 
+  tags <- option [] $ line $ parseTag `sepBy` ws 
   string "Feature:"
   name <- parseLine
   description <- parseDescription
