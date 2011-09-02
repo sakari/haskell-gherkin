@@ -75,11 +75,11 @@ parseDescription = fmap join $ description
     join = concat . intersperse "\n"
     end = try $ ws >> 
           ( choice $ 
-            map lookAhead $ [ string_ "Scenario:"
-                            , string_ "Scenario-outline:"
-                            , string_ "Feature:"
-                            , string_ "Background:"
-                            , eof])
+            map (lookAhead . try) $ [ string_ "Scenario-outline:"
+                                    , string_ "Scenario:"
+                                    , string_ "Feature:"
+                                    , string_ "Background:"
+                                    , eof])
   
 parseBackground :: Parser Background
 parseBackground = do
