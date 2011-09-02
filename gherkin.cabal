@@ -7,13 +7,27 @@ Author:              Sakari Jokinen
 Maintainer:          sakariij@gmail.com
 Category:            Parser
 Build-type:          Simple
-Cabal-version:       >=1.2
+Cabal-version:       >=1.10
+
+test-suite test
+  main-is: Main.hs
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+  ghc-options: -threaded -rtsopts
+  build-depends:
+    base >= 4,
+    test-framework,
+    test-framework-quickcheck2,
+    QuickCheck >= 2.4.0.0,
+    parsec >= 3.1.1,
+    gherkin >= 0.1,
+    MissingH >= 1.1.0.3
 
 Library
-  Exposed-modules: Language.Gherkin  
-  		     
-  -- Packages needed in order to build this package.
-  -- Build-depends:       
+  exposed-modules: Language.Gherkin  
+  build-depends:
+    base >= 4,
+    parsec >= 3.1.1
   
   -- Modules not exported by this package.
   -- Other-modules:       

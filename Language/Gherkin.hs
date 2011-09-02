@@ -1,4 +1,4 @@
-module Gherkin where
+module Language.Gherkin where
 
 import Text.Parsec
 import Text.Parsec.String
@@ -27,7 +27,7 @@ data Scenario = Scenario { scenario_name :: String
 data Table = Table { table_headers :: [String]
                    , table_values :: [[String]]
                    } 
-           deriving (Show)
+           deriving (Show, Eq)
 
 data Background = Background [Step] deriving (Show)
                   
@@ -54,7 +54,7 @@ parseFeature = do
   name <- parseLine
   description <- parseDescription
   background <- return Nothing -- optionMaybe parseBackground  
-  scenarios <- return [] -- fmap (:[]) $ parseScenario
+  scenarios <- many (parseScenario <|> parseScenarioOutline)
   return $ Feature { feature_tags = tags
                    , feature_name = name
                    , feature_description = description
@@ -104,11 +104,24 @@ parseThen = try $ string "Then" >> Then `fmap` parseStepText
 parseAnd :: Parser Step
 parseAnd = try $ string "And" >> And `fmap` parseStepText
 
+parseScenarioOutline :: Parser Scenario
+parseScenarioOutline = scenarioOutline <?> "scenario outline"
+  where
+    scenarioOutline = do
+      try $ ws >> string "Scenario-outline:"
+      name <- parseLine
+      steps <- many $ try $ line parseStep
+      table <- parseTable
+      return $ ScenarioOutline { scenario_name = name
+                               , scenario_steps = steps
+                               , scenario_table = table 
+                               }
+
 parseScenario :: Parser Scenario
 parseScenario = scenario <?> "scenario"
   where
     scenario = do
-      ws >> string "Scenario:"
+      try $ ws >> string "Scenario:"
       name <- parseLine
       steps <- many $ try $ line parseStep
       spaces_
@@ -130,24 +143,31 @@ parseToken = parseVar <|> parseAtom
                manyTill anyChar $ lookAhead $ string ">"
     parseAtom = Atom `fmap` many1 alphaNum
 
+parseTable :: Parser Table
+parseTable = do
+  header <- parseRow
+  values <- many parseRow
+  return $ Table { table_headers = header
+                 , table_values = values
+                 }
+  
+parseRow = fmap (map strip) $ line $ char '|' >> endBy go (char '|')
+  where
+    go = try $ do
+      r <- many (noneOf "|\n")
+      lookAhead $ string_ "|"
+      return r
+
 parseBlockText :: Parser BlockArg
 parseBlockText = char ':' >> (parseBlockTable <|> parsePystring)
   where
-    parseBlockTable = do
-      header <- parseRow 
-      values <- many1 parseRow    
-      return $ BlockTable $ Table { table_headers = header
-                                  , table_values = values
-                                  }
-    parseRow = line $ many1 parseCell
-    parseCell = let bar = ws >> string "|" >> ws
-                in bar >> anyChar `endBy` bar
+    parseBlockTable = BlockTable `fmap` parseTable 
     parsePystring =  
       let limit = string "\"\"\"" 
       in between limit limit $ fmap BlockPystring $ many anyChar
 
 line :: Parser a -> Parser a
-line p = between ws (ws >> newline) p
+line p = between ws (ws >> (newline_ <|> eof)) p
 
 parseLine :: Parser String
 parseLine = fmap strip $ manyTill anyChar $ try $ eof <|> newline_
