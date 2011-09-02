@@ -28,6 +28,14 @@ tests = [
         , table_values =  [[ "c", "d" ]]
         }
   
+  , testProperty "parse feature tags" $
+    prop parseFeature "@fst @snd\nFeature: feature\n" ==
+    feature { feature_tags = ["fst", "snd"] }
+    
+  , testProperty "parse feature description" $
+    prop parseFeature "Feature: feature\ndescription first line\nsecond line" ==
+    feature { feature_description = "description first line\nsecond line" }
+  
   , testProperty "parse feature with scenario" $ 
     prop parseFeature  "\nFeature: feature\nScenario: a scenario\nGiven first step\nThen second step" == feature {
       feature_scenarios = [ Scenario { scenario_name = "a scenario"
