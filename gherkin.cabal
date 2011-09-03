@@ -14,7 +14,7 @@ test-suite test
   main-is: Main.hs
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
-  ghc-options: -threaded -rtsopts -Wall -Werror
+  ghc-options: -threaded -rtsopts -Wall -Werror -fno-warn-orphans 
   build-depends:
     base >= 4,
     test-framework,

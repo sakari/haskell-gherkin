@@ -4,7 +4,7 @@ import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 import Text.Parsec
 import Text.Parsec.String
-import Instances
+import Instances ()
 import Language.Gherkin
 import Text.PrettyPrint
 
@@ -33,7 +33,7 @@ l =.= r | l /= r = error $ "Expected '"  ++ show r ++ "'\nGot '" ++ show l
 
 prettyTests :: [Test]
 prettyTests = [
-  testProperty "" $ \(GF f) ->
+  testProperty "" $ \f ->
    prop parseFeature (render $ pretty f) =.= f
   ]
 
