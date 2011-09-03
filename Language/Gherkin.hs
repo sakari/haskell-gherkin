@@ -133,8 +133,8 @@ parseStepText :: Parser StepText
 parseStepText = do
   ws
   tokens <- parseToken `sepBy` ws
-  -- block <- optionMaybe parseBlockText
-  return $ StepText tokens Nothing
+  block <- optionMaybe parseBlockText
+  return $ StepText tokens block
   
 parseToken :: Parser Token
 parseToken = parseVar <|> parseAtom
@@ -159,7 +159,7 @@ parseRow = fmap (map strip) $ line $ char '|' >> endBy go (char '|')
       return r
 
 parseBlockText :: Parser BlockArg
-parseBlockText = char ':' >> (parseBlockTable <|> parsePystring)
+parseBlockText = line (char ':') >> (parseBlockTable <|> parsePystring)
   where
     parseBlockTable = BlockTable `fmap` parseTable 
     parsePystring =  

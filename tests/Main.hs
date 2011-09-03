@@ -47,6 +47,21 @@ tests = [
                                }
               ]}
     
+  , testProperty "parse block argument to step" $
+    prop parseStep "Given step:\n| a |\n| b|" =.=
+    Given (StepText [Atom "step"]
+           $ Just $ BlockTable $ 
+           Table { table_headers = ["a"]
+                 , table_values = [["b"]]
+                 }
+          )
+    
+  , testProperty "parse block table" $
+    prop parseBlockText ":\n| a |\n|b|" =.=
+    (BlockTable $ Table { table_headers = ["a"] 
+                        ,table_values = [["b"]]
+                        })
+    
   , testProperty "parse feature tags" $
     prop parseFeature "@fst @snd\nFeature: feature\n" =.=
     feature { feature_tags = ["fst", "snd"] }
