@@ -9,7 +9,7 @@ import Data.List
 parseFeature :: Parser Feature
 parseFeature = do
   tags <- option [] $ line $ parseTag `sepBy` ws 
-  string "Feature:"
+  string_ "Feature:"
   name <- parseLine
   description <- parseDescription
   background <- return Nothing -- optionMaybe parseBackground  
@@ -42,7 +42,7 @@ parseDescription = fmap join $ description
   
 parseBackground :: Parser Background
 parseBackground = do
-  string "Background:"
+  string_ "Background:"
   Background `fmap` many1 parseStep
   
 parseStep :: Parser Step
@@ -67,7 +67,7 @@ parseScenarioOutline :: Parser Scenario
 parseScenarioOutline = scenarioOutline <?> "scenario outline"
   where
     scenarioOutline = do
-      try $ ws >> string "Scenario-outline:"
+      try $ ws >> string_ "Scenario-outline:"
       name <- parseLine
       steps <- many $ try $ line parseStep
       table <- parseTable
@@ -80,7 +80,7 @@ parseScenario :: Parser Scenario
 parseScenario = scenario <?> "scenario"
   where
     scenario = do
-      try $ ws >> string "Scenario:"
+      try $ ws >> string_ "Scenario:"
       name <- parseLine
       steps <- many $ try $ line parseStep
       spaces_
@@ -91,9 +91,9 @@ parseScenario = scenario <?> "scenario"
 parseStepText :: Parser StepText
 parseStepText = do
   ws
-  tokens <- parseToken `sepBy` ws
+  stepTokens <- parseToken `sepBy` ws
   block <- optionMaybe parseBlockText
-  return $ StepText tokens block
+  return $ StepText stepTokens block
   
 parseToken :: Parser Token
 parseToken = parseVar <|> parseAtom
@@ -110,6 +110,7 @@ parseTable = do
                  , table_values = values
                  }
   
+parseRow :: Parser [String]
 parseRow = fmap (map strip) $ line $ char '|' >> endBy go (char '|')
   where
     go = try $ do
@@ -123,10 +124,10 @@ parseBlockText = line (char ':') >> (parseBlockTable <|> parsePystring)
     parseBlockTable = BlockTable `fmap` try parseTable 
     parsePystring =  try $ do
       indent <- many $ oneOf " \t"
-      line $ string "\"\"\""
+      line $ string_ "\"\"\""
       let ln = string_ indent >> parseWholeLine
-      lines <- manyTill ln $ (try $ line $ string_ "\"\"\"")
-      return $ BlockPystring $ unlines lines
+      pystrings <- manyTill ln $ (try $ line $ string_ "\"\"\"")
+      return $ BlockPystring $ unlines pystrings
 
 line :: Parser a -> Parser a
 line p = between ws (ws >> (newline_ <|> eof)) p
@@ -140,8 +141,10 @@ parseLine = fmap strip $ parseWholeLine
 spaces_ :: Parser ()            
 spaces_ = const () `fmap` spaces  
 
+string_ :: String -> Parser ()
 string_ s = const () `fmap` string s
 
+newline_ :: Parser ()
 newline_  = const () `fmap` newline
 
 ws :: Parser ()

@@ -4,12 +4,12 @@ import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 import Text.Parsec
 import Text.Parsec.String
-import System.IO.Unsafe
 import Language.Gherkin
-import Data.Either.Utils
 
+main :: IO ()
 main = defaultMain [testGroup "Parsing tests" tests]
 
+feature :: Feature
 feature = Feature { feature_tags = []
                   , feature_name = "feature"
                   , feature_description = ""
@@ -17,13 +17,16 @@ feature = Feature { feature_tags = []
                   , feature_scenarios = []
                   }
 
+prop :: Parser a -> String -> a
 prop p str = case parse p "" str of
   Left e -> error $ show e
   Right l -> l
   
+(=.=) :: (Show a, Eq a) => a -> a -> Bool
 l =.= r | l /= r = error $ "Expected '"  ++ show r ++ "'\nGot '" ++ show l
         | otherwise = True
                       
+tests :: [Test]
 tests = [
   testProperty "parse table" $
   prop parseTable "| a | b |\n|c | d|" =.= 
