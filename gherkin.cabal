@@ -10,6 +10,7 @@ Build-type:          Simple
 Cabal-version:       >=1.10
 
 test-suite test
+  default-language: Haskell2010
   main-is: Main.hs
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
@@ -24,7 +25,11 @@ test-suite test
     MissingH >= 1.1.0.3
 
 Library
-  exposed-modules: Language.Gherkin  
+  default-language: Haskell2010
+  exposed-modules: 
+    Language.Gherkin, 
+    Language.Gherkin.AST,
+    Language.Gherkin.Parser       
   build-depends:
     base >= 4,
     parsec >= 3.1.1
