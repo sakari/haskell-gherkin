@@ -21,7 +21,7 @@ prop p str = case parse p "" str of
   Left e -> error $ show e
   Right l -> l
   
-l =.= r | l /= r = error $ "Expected '"  ++ show l ++ "'\nGot '" ++ show r
+l =.= r | l /= r = error $ "Expected '"  ++ show r ++ "'\nGot '" ++ show l
         | otherwise = True
                       
 tests = [
