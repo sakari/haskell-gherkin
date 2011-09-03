@@ -33,6 +33,16 @@ genName = do
   e <- elements nameChars
   return $ h:t ++ [e]
 
+descChars :: String
+descChars = ['a' .. 'z']
+
+genDescription :: Gen String
+genDescription = do
+  h <- elements descChars
+  t <- listOf $ elements (" \t" ++ descChars)
+  e <- elements descChars
+  return $ h:t ++ [e]
+
 instance Arbitrary Scenario where
   arbitrary = error "tbd"
   
@@ -42,7 +52,7 @@ instance Arbitrary Background where
 instance Arbitrary Feature where
   arbitrary = Feature <$> listOf genTag <*> 
               genName <*>
-              return "description" <*>
+              genDescription <*>
               return Nothing <*>
               return []
   shrink Feature {
