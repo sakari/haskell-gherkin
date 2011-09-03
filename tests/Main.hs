@@ -4,10 +4,14 @@ import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 import Text.Parsec
 import Text.Parsec.String
+import Instances
 import Language.Gherkin
+import Text.PrettyPrint
 
 main :: IO ()
-main = defaultMain [testGroup "Parsing tests" tests]
+main = defaultMain [testGroup "Parsing tests" tests
+                   , testGroup "Pretty roundtrip" prettyTests 
+                   ]
 
 feature :: Feature
 feature = Feature { feature_tags = []
@@ -26,6 +30,13 @@ prop p str = case parse p "" str of
 l =.= r | l /= r = error $ "Expected '"  ++ show r ++ "'\nGot '" ++ show l
         | otherwise = True
                       
+
+prettyTests :: [Test]
+prettyTests = [
+  testProperty "" $ \(GF f) ->
+   prop parseFeature (render $ pretty f) =.= f
+  ]
+
 tests :: [Test]
 tests = [
   testProperty "parse table" $

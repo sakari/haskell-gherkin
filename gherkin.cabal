@@ -22,6 +22,7 @@ test-suite test
     QuickCheck >= 2.4.0.0,
     parsec >= 3.1.1,
     gherkin >= 0.1,
+    pretty >= 1.0.2.1,
     MissingH >= 1.1.0.3
 
 Library
@@ -30,10 +31,12 @@ Library
   exposed-modules: 
     Language.Gherkin, 
     Language.Gherkin.AST,
-    Language.Gherkin.Parser       
+    Language.Gherkin.Parser,
+    Language.Gherkin.Pretty
   build-depends:
     base >= 4,
-    parsec >= 3.1.1
+    parsec >= 3.1.1,
+    pretty >= 1.0.2.1
   
   -- Modules not exported by this package.
   -- Other-modules:       
