@@ -78,7 +78,7 @@ tests = [
     
   , testProperty "parse pystring argument" $ 
     prop parseBlockText ":\n\"\"\"\nfoobar\nbar\n\"\"\"" =.=
-    (BlockPystring "foobar\nbar\n")
+    (BlockPystring "foobar\nbar")
     
   , testProperty "pystrings are indented according to start quotes" $
     prop parseBlockText (":\n" ++ (unlines $ 
@@ -87,7 +87,7 @@ tests = [
                                  , "No indent"
                                  , " One indent"
                                  , "\"\"\"" ])) =.=
-    (BlockPystring "No indent\n One indent\n")
+    (BlockPystring "No indent\n One indent")
     
   , testProperty "parse feature tags" $
     prop parseFeature "@fst @snd\nFeature: feature\n" =.=

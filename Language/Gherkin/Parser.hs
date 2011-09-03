@@ -4,6 +4,7 @@ import Language.Gherkin.AST
 import Text.Parsec
 import Text.Parsec.String
 import Data.Char
+import Data.List
 
 parseFeature :: Parser Feature
 parseFeature = do
@@ -125,7 +126,7 @@ parseBlockText = line (char ':') >> (parseBlockTable <|> parsePystring)
       line $ string_ "\"\"\""
       let ln = string_ indent >> parseWholeLine
       pystrings <- manyTill ln $ (try $ line $ string_ "\"\"\"")
-      return $ BlockPystring $ unlines pystrings
+      return $ BlockPystring $ concat $ intersperse "\n" pystrings
 
 line :: Parser a -> Parser a
 line p = between ws (ws >> (newline_ <|> eof)) p
