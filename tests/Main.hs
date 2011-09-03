@@ -56,11 +56,15 @@ tests = [
                  }
           )
     
-  , testProperty "parse block table" $
+  , testProperty "parse table argument" $
     prop parseBlockText ":\n| a |\n|b|" =.=
     (BlockTable $ Table { table_headers = ["a"] 
                         ,table_values = [["b"]]
                         })
+    
+  , testProperty "parse pystring argument" $ 
+    prop parseBlockText ":\n\"\"\"\nfoobar\n  bar\n\"\"\"" =.=
+    (BlockPystring "foobar\nbar")
     
   , testProperty "parse feature tags" $
     prop parseFeature "@fst @snd\nFeature: feature\n" =.=

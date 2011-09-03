@@ -162,9 +162,13 @@ parseBlockText :: Parser BlockArg
 parseBlockText = line (char ':') >> (parseBlockTable <|> parsePystring)
   where
     parseBlockTable = BlockTable `fmap` parseTable 
-    parsePystring =  
-      let limit = string "\"\"\"" 
-      in between limit limit $ fmap BlockPystring $ many anyChar
+    parsePystring =  do
+      indent <- many $ oneOf " \t"
+      string "\"\"\"\n"
+      lines <- manyTill parseLine $ (try $ ws >> string_ "\"\"\"")
+      return $ BlockPystring $ concat $ 
+        intersperse "\n" $ 
+        fmap (drop $ length indent) lines
 
 line :: Parser a -> Parser a
 line p = between ws (ws >> (newline_ <|> eof)) p
