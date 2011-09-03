@@ -161,20 +161,22 @@ parseRow = fmap (map strip) $ line $ char '|' >> endBy go (char '|')
 parseBlockText :: Parser BlockArg
 parseBlockText = line (char ':') >> (parseBlockTable <|> parsePystring)
   where
-    parseBlockTable = BlockTable `fmap` parseTable 
-    parsePystring =  do
+    parseBlockTable = BlockTable `fmap` try parseTable 
+    parsePystring =  try $ do
       indent <- many $ oneOf " \t"
-      string "\"\"\"\n"
-      lines <- manyTill parseLine $ (try $ ws >> string_ "\"\"\"")
-      return $ BlockPystring $ concat $ 
-        intersperse "\n" $ 
-        fmap (drop $ length indent) lines
+      line $ string "\"\"\""
+      let ln = string_ indent >> parseWholeLine
+      lines <- manyTill ln $ (try $ ws >> string_ "\"\"\"")
+      return $ BlockPystring $ unlines lines
 
 line :: Parser a -> Parser a
 line p = between ws (ws >> (newline_ <|> eof)) p
 
+parseWholeLine :: Parser String
+parseWholeLine = manyTill anyChar $ try $ eof <|> newline_
+
 parseLine :: Parser String
-parseLine = fmap strip $ manyTill anyChar $ try $ eof <|> newline_
+parseLine = fmap strip $ parseWholeLine
   
 spaces_ :: Parser ()            
 spaces_ = const () `fmap` spaces  
