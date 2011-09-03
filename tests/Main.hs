@@ -95,7 +95,7 @@ tests = [
     
   , testProperty "parse feature description" $
     prop parseFeature "Feature: feature\ndescription first line\nsecond line" =.=
-    feature { feature_description = "description first line\nsecond line" }
+    feature { feature_description = "description first linesecond line" }
   
   , testProperty "parse feature with scenario" $ 
     prop parseFeature  "\nFeature: feature\nScenario: a scenario\nGiven first step\nThen second step" =.= feature {

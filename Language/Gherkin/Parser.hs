@@ -4,7 +4,6 @@ import Language.Gherkin.AST
 import Text.Parsec
 import Text.Parsec.String
 import Data.Char
-import Data.List
 
 parseFeature :: Parser Feature
 parseFeature = do
@@ -28,10 +27,9 @@ parseTag :: Parser Tag
 parseTag = char '@' >> many1 alphaNum
 
 parseDescription :: Parser String
-parseDescription = fmap join $ description
+parseDescription = fmap concat $ description
   where
     description = try (manyTill parseLine end) <?> "description"
-    join = concat . intersperse "\n"
     end = try $ ws >> 
           ( choice $ 
             map (lookAhead . try) $ [ string_ "Scenario-outline:"
