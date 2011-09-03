@@ -166,7 +166,7 @@ parseBlockText = line (char ':') >> (parseBlockTable <|> parsePystring)
       indent <- many $ oneOf " \t"
       line $ string "\"\"\""
       let ln = string_ indent >> parseWholeLine
-      lines <- manyTill ln $ (try $ ws >> string_ "\"\"\"")
+      lines <- manyTill ln $ (try $ line $ string_ "\"\"\"")
       return $ BlockPystring $ unlines lines
 
 line :: Parser a -> Parser a
