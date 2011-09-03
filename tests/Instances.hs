@@ -44,7 +44,9 @@ genDescription = do
   return $ h:t ++ [e]
 
 instance Arbitrary Scenario where
-  arbitrary = error "tbd"
+  arbitrary = return $ Scenario { scenario_name = "scenario"
+                                , scenario_steps = []
+                                }
   
 instance Arbitrary Background where
   arbitrary = error "tbd"
@@ -54,7 +56,7 @@ instance Arbitrary Feature where
               genName <*>
               genDescription <*>
               return Nothing <*>
-              return []
+              arbitrary
   shrink Feature {
     feature_tags
     , feature_name
