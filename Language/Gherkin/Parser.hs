@@ -119,13 +119,14 @@ parseRow = fmap (map strip) $ line $ char '|' >> endBy go (char '|')
       return r
 
 parseBlockText :: Parser BlockArg
-parseBlockText = line (char ':') >> (parseBlockTable <|> parsePystring)
+parseBlockText = line (char ':') >> (try parseBlockTable <|> try parsePystring)
   where
-    parseBlockTable = BlockTable `fmap` try parseTable 
-    parsePystring =  try $ do
+    parseBlockTable = BlockTable `fmap` parseTable 
+    parsePystring =  do
       indent <- many $ oneOf " \t"
       line $ string_ "\"\"\""
-      let ln = ((string_ indent >> parseWholeLine) <|> (ws >> newline >> return []))
+      let ln = ((string_ indent >> parseWholeLine) <|> 
+                (ws >> newline >> return []))
       pystrings <- manyTill ln $ (try $ line $ string_ "\"\"\"")
       return $ BlockPystring $ concat $ intersperse "\n" pystrings
 

@@ -39,9 +39,14 @@ prettyStepText (StepText tokens maybeBlock) =
     go block = text ":" $+$ prettyBlock block
 
 prettyBlock :: BlockArg -> Doc
-prettyBlock (BlockPystring str) = text "\"\"\"" $+$ 
-                                  text str $+$ 
-                                  text "\"\"\""
+prettyBlock (BlockPystring str) = 
+  text "\"\"\"" $+$ 
+  vcat (map text lns)  $+$ 
+  text "\"\"\""
+    where                                       
+      lns | null str = []  
+          | last str == '\n' = lines str ++ [""]  
+          | otherwise = lines str
 prettyBlock (BlockTable table) = prettyTable table
 
 prettyTable :: Table -> Doc

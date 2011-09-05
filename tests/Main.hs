@@ -83,6 +83,10 @@ tests = [
     prop parseBlockText ":\n\"\"\"\nfoobar\nbar\n\"\"\"" =.=
     (BlockPystring "foobar\nbar")
     
+  , testProperty "a single newline inside pystring" $ 
+    prop parseBlockText ":\n\"\"\"\n\n\n\"\"\"" =.=
+    (BlockPystring "\n")
+
   , testProperty "pystrings are indented according to start quotes" $
     prop parseBlockText (":\n" ++ (unlines $ 
                                  fmap ("  " ++) 

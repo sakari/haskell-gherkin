@@ -12,8 +12,13 @@ tagChars = ['a' .. 'z']
 genTag :: Gen String
 genTag = listOf1 $ elements tagChars
 
+shrinkTag :: String -> [String]
+shrinkTag tag = filter notEmpty $ shrinkList1 (`elem` tagChars) tag
+  where
+    notEmpty t = not $ null t
+    
 shrinkTags :: [String] -> [[String]]
-shrinkTags tags = shrinkList (shrinkList1 (`elem` tagChars)) tags
+shrinkTags = shrinkList shrinkTag
     
 shrinkList1 :: Arbitrary a => (a -> Bool) -> [a] -> [[a]]
 shrinkList1 p ls = filter null $ fmap (filter p) $ shrink ls
@@ -49,10 +54,21 @@ instance Arbitrary Scenario where
 instance Arbitrary Step where
   arbitrary = elements [Given, Then, When, And] <*>
               arbitrary
-              
+  shrink (Given steps) = Given <$> shrink steps
+  shrink (Then steps) = [Given steps] ++ (Then <$> shrink steps)
+  shrink (When steps) = [Given steps] ++ (When <$> shrink steps)
+  shrink (And steps) = [Given steps] ++ (And <$> shrink steps)
+  
+
 instance Arbitrary Background
 instance Arbitrary StepText where
   arbitrary = StepText <$> listOf1 arbitrary <*> arbitrary
+  shrink (StepText tokens block) = filter noEmptySteps $ tail' $ StepText 
+                                   <$> (tokens : shrink tokens) 
+                                   <*> (block : shrink block)
+                                     where
+                                       noEmptySteps (StepText ts _) = not $ null ts
+                                       
   
 instance Arbitrary BlockArg where
   arbitrary = oneof [table,  pystring]
@@ -68,6 +84,8 @@ instance Arbitrary Token where
   arbitrary = oneof [ Atom <$> genTag
                     , Var <$> genTag
                     ]
+  shrink (Atom atom) = tail' $ Atom <$> (atom : shrinkTag atom)
+  shrink (Var atom) = [Atom atom] ++ (tail' $ Var <$> (atom : shrinkTag atom))
 
 instance Arbitrary Feature where
   arbitrary = Feature <$> listOf genTag <*> 
