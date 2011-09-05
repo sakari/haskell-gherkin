@@ -44,13 +44,31 @@ genDescription = do
   return $ h:t ++ [e]
 
 instance Arbitrary Scenario where
-  arbitrary = return $ Scenario { scenario_name = "scenario"
-                                , scenario_steps = []
-                                }
+  arbitrary = Scenario <$> genName <*> arbitrary
   
-instance Arbitrary Background where
-  arbitrary = error "tbd"
+instance Arbitrary Step where
+  arbitrary = elements [Given, Then, When, And] <*>
+              arbitrary
+              
+instance Arbitrary Background
+instance Arbitrary StepText where
+  arbitrary = StepText <$> listOf1 arbitrary <*> arbitrary
   
+instance Arbitrary BlockArg where
+  arbitrary = oneof [table,  pystring]
+    where
+      table = BlockTable <$> arbitrary
+      pystring = fmap BlockPystring $ listOf $ elements $ 
+                 ['a' .. 'z'] ++ "\t\n -_.,'\""
+      
+instance Arbitrary Table where      
+  arbitrary = Table <$> listOf1 genTag <*> listOf (listOf1 genTag)
+
+instance Arbitrary Token where
+  arbitrary = oneof [ Atom <$> genTag
+                    , Var <$> genTag
+                    ]
+
 instance Arbitrary Feature where
   arbitrary = Feature <$> listOf genTag <*> 
               genName <*>
@@ -64,11 +82,11 @@ instance Arbitrary Feature where
     , feature_background
     , feature_scenarios
     } = tail' $ Feature <$> 
-        shrinkTags feature_tags <*>
-        shrinkName feature_name <*>
-        shrink feature_description <*>
-        shrink feature_background <*>
-        shrink feature_scenarios
+        (feature_tags : shrinkTags feature_tags) <*>
+        (feature_name : shrinkName feature_name) <*>
+        (feature_description : shrink feature_description) <*>
+        (feature_background : shrink feature_background) <*>
+        (feature_scenarios : shrink feature_scenarios)
 
 tail' :: [a] -> [a]
 tail' [] = []

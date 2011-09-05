@@ -14,6 +14,7 @@ parseFeature = do
   description <- parseDescription
   background <- return Nothing -- optionMaybe parseBackground  
   scenarios <- many (parseScenario <|> parseScenarioOutline)
+  eof
   return $ Feature { feature_tags = tags
                    , feature_name = name
                    , feature_description = description
@@ -90,7 +91,7 @@ parseScenario = scenario <?> "scenario"
 parseStepText :: Parser StepText
 parseStepText = do
   ws
-  stepTokens <- parseToken `sepBy` ws
+  stepTokens <- parseToken `sepBy1` ws
   block <- optionMaybe parseBlockText
   return $ StepText stepTokens block
   
@@ -129,10 +130,10 @@ parseBlockText = line (char ':') >> (parseBlockTable <|> parsePystring)
       return $ BlockPystring $ concat $ intersperse "\n" pystrings
 
 line :: Parser a -> Parser a
-line p = between ws (ws >> (newline_ <|> eof)) p
+line p = between ws (ws >> (newline_ <|> lookAhead eof)) p
 
 parseWholeLine :: Parser String
-parseWholeLine = manyTill anyChar $ try $ eof <|> newline_
+parseWholeLine = manyTill anyChar $ try $ newline_ <|> lookAhead eof
 
 parseLine :: Parser String
 parseLine = fmap strip $ parseWholeLine

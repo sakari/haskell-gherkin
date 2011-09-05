@@ -10,7 +10,7 @@ import Text.PrettyPrint
 
 main :: IO ()
 main = defaultMain [testGroup "Parsing tests" tests
-                   , testGroup "Pretty roundtrip" prettyTests 
+                   , testGroup "Pretty roundtrip" prettyTests
                    ]
 
 feature :: Feature
@@ -22,7 +22,7 @@ feature = Feature { feature_tags = []
                   }
 
 prop :: Parser a -> String -> a
-prop p str = case parse p "" str of
+prop p str = case parse (p >>= \r -> eof >> return r) "" str of
   Left e -> error $ show e
   Right l -> l
   
@@ -33,8 +33,11 @@ l =.= r | l /= r = error $ "Expected '"  ++ show r ++ "'\nGot '" ++ show l
 
 prettyTests :: [Test]
 prettyTests = [
-  testProperty "" $ \f ->
+  testProperty "Feature" $ \f ->
    prop parseFeature (render $ pretty f) =.= f
+  
+  , testProperty "Step" $ \s ->
+   prop parseStep (render $ prettyStep s) =.= s
   ]
 
 tests :: [Test]
@@ -92,6 +95,14 @@ tests = [
   , testProperty "parse feature tags" $
     prop parseFeature "@fst @snd\nFeature: feature\n" =.=
     feature { feature_tags = ["fst", "snd"] }
+    
+  , testProperty "allow empty scenarios" $
+    prop parseFeature "Feature: feature\nScenario: empty scenario\nScenario: second empty" =.=
+    feature { feature_scenarios = [ Scenario { scenario_name = "empty scenario"
+                                             , scenario_steps = []}
+                                  , Scenario { scenario_name = "second empty"
+                                             , scenario_steps = []}
+                                  ]}
     
   , testProperty "parse feature description" $
     prop parseFeature "Feature: feature\ndescription first line\nsecond line" =.=
