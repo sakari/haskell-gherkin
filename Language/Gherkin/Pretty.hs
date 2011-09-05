@@ -39,7 +39,9 @@ prettyStepText (StepText tokens maybeBlock) =
     go block = text ":" $+$ prettyBlock block
 
 prettyBlock :: BlockArg -> Doc
-prettyBlock (BlockPystring str) = text "\"\"\"" $+$ text str $+$ text "\"\"\""
+prettyBlock (BlockPystring str) = text "\"\"\"" $+$ 
+                                  text str $+$ 
+                                  text "\"\"\""
 prettyBlock (BlockTable table) = prettyTable table
 
 prettyTable :: Table -> Doc

@@ -125,7 +125,7 @@ parseBlockText = line (char ':') >> (parseBlockTable <|> parsePystring)
     parsePystring =  try $ do
       indent <- many $ oneOf " \t"
       line $ string_ "\"\"\""
-      let ln = string_ indent >> parseWholeLine
+      let ln = ((string_ indent >> parseWholeLine) <|> (ws >> newline >> return []))
       pystrings <- manyTill ln $ (try $ line $ string_ "\"\"\"")
       return $ BlockPystring $ concat $ intersperse "\n" pystrings
 
