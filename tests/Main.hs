@@ -39,8 +39,8 @@ prettyTests = [
   , testProperty "Step" $ \s ->
    prop parseStep (render $ prettyStep s) =.= s
   
-  , testProperty "Scenario" $ \s -> 
-   prop parseScenario (render $ prettyScenario s) =.= s
+  , testProperty "Scenario" $ \s ->
+    prop (parseScenario <|> parseScenarioOutline) (render $ prettyScenario s) =.= s
    
   , testProperty "BlockText" $ \b ->
    prop parseBlockText (render $ prettyBlock b) =.= b
@@ -75,7 +75,7 @@ tests = [
         }
   
   , testProperty "parse scenario-outline" $ 
-    prop parseFeature "Feature: feature\nScenario-outline: scenario\nGiven bar\n| header |\n|value|" =.=
+    prop parseFeature "Feature: feature\nScenario-outline: scenario\nGiven bar\nScenarios:\n| header |\n|value|" =.=
     feature { feature_scenarios = 
               [ScenarioOutline { scenario_name = "scenario"
                                , scenario_steps = 

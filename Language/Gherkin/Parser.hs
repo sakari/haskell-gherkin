@@ -64,12 +64,13 @@ parseAnd :: Parser Step
 parseAnd = try (ws >> string "And") >> And `fmap` parseStepText
 
 parseScenarioOutline :: Parser Scenario
-parseScenarioOutline = scenarioOutline <?> "scenario outline"
+parseScenarioOutline = scenarioOutline
   where
     scenarioOutline = do
       try $ ws >> string_ "Scenario-outline:"
       name <- parseLine
       steps <- many parseStep
+      line $ string_ "Scenarios:"
       table <- parseTable
       return $ ScenarioOutline { scenario_name = name
                                , scenario_steps = steps
@@ -77,7 +78,7 @@ parseScenarioOutline = scenarioOutline <?> "scenario outline"
                                }
 
 parseScenario :: Parser Scenario
-parseScenario = scenario <?> "scenario"
+parseScenario = scenario
   where
     scenario = do
       try $ ws >> string_ "Scenario:"

@@ -52,13 +52,17 @@ smaller :: Gen a -> Gen a
 smaller gen = sized $ \s -> resize (s `div` 2) gen
 
 instance Arbitrary Scenario where
-  arbitrary = Scenario <$> genName <*> arbitrary
+  arbitrary = oneof [Scenario <$> genName <*> arbitrary
+                    , ScenarioOutline <$> genName <*> arbitrary <*> arbitrary
+                    ]
   shrink (Scenario name steps) = tail' $ Scenario <$> 
                                  (name : shrinkName name) <*>
                                  (steps : shrink steps)
-  shrink (ScenarioOutline _name _steps _table) = 
-    error "tbd: arbitrary scenariooutline"
-  
+  shrink (ScenarioOutline name steps table) = tail' $ ScenarioOutline <$> 
+                                              (name : shrinkName name) <*>
+                                              (steps : shrink steps) <*>
+                                              (table : shrink table)
+
 instance Arbitrary Step where
   arbitrary = elements [Given, Then, When, And] <*> arbitrary
   shrink (Given steps) = Given <$> shrink steps

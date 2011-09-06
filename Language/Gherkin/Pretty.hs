@@ -30,7 +30,18 @@ prettyScenario Scenario { scenario_name
                         } = text "Scenario:" <+> text scenario_name $+$ 
                             (nest 4 $
                              vcat $ map prettyStep scenario_steps)
-prettyScenario ScenarioOutline {} = error "tbd"                            
+prettyScenario ScenarioOutline { scenario_name
+                               , scenario_steps
+                               , scenario_table
+                               } = 
+  text "Scenario-outline:" <+> 
+  text scenario_name $+$
+  (nest 4 $
+   vcat $ map prettyStep scenario_steps ++
+   [text "Scenarios:"
+   , prettyTable scenario_table
+   ]
+  )
                             
 prettyStep :: Step -> Doc
 prettyStep (Given s) = prettyStepText "Given" s
