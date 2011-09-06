@@ -38,6 +38,15 @@ prettyTests = [
   
   , testProperty "Step" $ \s ->
    prop parseStep (render $ prettyStep s) =.= s
+  
+  , testProperty "Scenario" $ \s -> 
+   prop parseScenario (render $ prettyScenario s) =.= s
+   
+  , testProperty "StepText" $ \s ->
+   prop parseStepText (render $ prettyStepText s) =.= s
+   
+  , testProperty "BlockText" $ \b ->
+   prop parseBlockText (render $ prettyBlock b) =.= b
   ]
 
 tests :: [Test]
@@ -74,28 +83,28 @@ tests = [
           )
     
   , testProperty "parse table argument" $
-    prop parseBlockText ":\n| a |\n|b|" =.=
+    prop parseBlockText "| a |\n|b|" =.=
     (BlockTable $ Table { table_headers = ["a"] 
                         ,table_values = [["b"]]
                         })
     
   , testProperty "parse pystring argument" $ 
-    prop parseBlockText ":\n\"\"\"\nfoobar\nbar\n\"\"\"" =.=
+    prop parseBlockText "\"\"\"\nfoobar\nbar\n\"\"\"" =.=
     (BlockPystring "foobar\nbar")
     
   , testProperty "a single newline inside pystring" $ 
-    prop parseBlockText ":\n\"\"\"\n\n\n\"\"\"" =.=
+    prop parseBlockText "\"\"\"\n\n\n\"\"\"" =.=
     (BlockPystring "\n")
 
   , testProperty "pystrings are indented according to start quotes" $
-    prop parseBlockText (":\n" ++ (unlines $ 
-                                 fmap ("  " ++) 
-                                 ["\"\"\""   
-                                 , "No indent"
-                                 , " One indent"
-                                 , "\"\"\"" ])) =.=
+    prop parseBlockText (unlines $ 
+                         fmap ("  " ++) 
+                         ["\"\"\""   
+                         , "No indent"
+                         , " One indent"
+                         , "\"\"\"" ]) =.=
     (BlockPystring "No indent\n One indent")
-    
+
   , testProperty "parse feature tags" $
     prop parseFeature "@fst @snd\nFeature: feature\n" =.=
     feature { feature_tags = ["fst", "snd"] }

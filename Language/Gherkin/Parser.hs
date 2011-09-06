@@ -52,16 +52,16 @@ parseStep = (parseGiven <|>
              parseAnd) <?> "a scenario step"
             
 parseGiven :: Parser Step
-parseGiven = try $ string "Given" >> Given `fmap` parseStepText
+parseGiven = try (ws >> string "Given") >> Given `fmap` parseStepText
 
 parseWhen :: Parser Step
-parseWhen = try $ string "When" >> When `fmap` parseStepText
+parseWhen = try (ws >> string "When") >> When `fmap` parseStepText
 
 parseThen :: Parser Step
-parseThen = try $ string "Then" >> Then `fmap` parseStepText
+parseThen = try (ws >> string "Then") >> Then `fmap` parseStepText
 
 parseAnd :: Parser Step
-parseAnd = try $ string "And" >> And `fmap` parseStepText
+parseAnd = try (ws >> string "And") >> And `fmap` parseStepText
 
 parseScenarioOutline :: Parser Scenario
 parseScenarioOutline = scenarioOutline <?> "scenario outline"
@@ -82,7 +82,7 @@ parseScenario = scenario <?> "scenario"
     scenario = do
       try $ ws >> string_ "Scenario:"
       name <- parseLine
-      steps <- many $ try $ line parseStep
+      steps <- many $ parseStep
       spaces_
       return $ Scenario { scenario_name = name
                         , scenario_steps = steps
@@ -92,14 +92,20 @@ parseStepText :: Parser StepText
 parseStepText = do
   ws
   stepTokens <- parseToken `sepBy1` ws
-  block <- optionMaybe parseBlockText
+  ws
+  block <- choice [string ":" >> 
+                   ws >> newline_ >> 
+                   (Just `fmap` parseBlockText)
+                  , lineEnd
+                    >> return Nothing
+                  ]
   return $ StepText stepTokens block
   
 parseToken :: Parser Token
 parseToken = parseVar <|> parseAtom
   where
     parseVar = fmap Var $ between (string "<") (string ">") $ 
-               manyTill anyChar $ lookAhead $ string ">"
+               many $ noneOf ">"
     parseAtom = Atom `fmap` many1 alphaNum
 
 parseTable :: Parser Table
@@ -119,22 +125,25 @@ parseRow = fmap (map strip) $ line $ char '|' >> endBy go (char '|')
       return r
 
 parseBlockText :: Parser BlockArg
-parseBlockText = line (char ':') >> (try parseBlockTable <|> try parsePystring)
+parseBlockText = parsePystring <|> parseBlockTable
   where
     parseBlockTable = BlockTable `fmap` parseTable 
+    startOfPystring = do
+      i <- many $ oneOf " \t"
+      line $ string_ "\"\"\"" 
+      return i
     parsePystring =  do
-      indent <- many $ oneOf " \t"
-      line $ string_ "\"\"\""
+      indent <- try $ startOfPystring
       let ln = ((string_ indent >> parseWholeLine) <|> 
                 (ws >> newline >> return []))
       pystrings <- manyTill ln $ (try $ line $ string_ "\"\"\"")
       return $ BlockPystring $ concat $ intersperse "\n" pystrings
 
 line :: Parser a -> Parser a
-line p = between ws (ws >> (newline_ <|> lookAhead eof)) p
+line p = between ws (ws >> lineEnd) p
 
 parseWholeLine :: Parser String
-parseWholeLine = manyTill anyChar $ try $ newline_ <|> lookAhead eof
+parseWholeLine = manyTill anyChar $ try lineEnd
 
 parseLine :: Parser String
 parseLine = fmap strip $ parseWholeLine
@@ -144,6 +153,9 @@ spaces_ = const () `fmap` spaces
 
 string_ :: String -> Parser ()
 string_ s = const () `fmap` string s
+
+lineEnd :: Parser ()
+lineEnd = newline_ <|> lookAhead eof
 
 newline_ :: Parser ()
 newline_  = const () `fmap` newline

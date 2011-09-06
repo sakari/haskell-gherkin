@@ -50,6 +50,11 @@ genDescription = do
 
 instance Arbitrary Scenario where
   arbitrary = Scenario <$> genName <*> arbitrary
+  shrink (Scenario name steps) = tail' $ Scenario <$> 
+                                 (name : shrinkName name) <*>
+                                 (steps : shrink steps)
+  shrink (ScenarioOutline _name _steps _table) = 
+    error "tbd: arbitrary scenariooutline"
   
 instance Arbitrary Step where
   arbitrary = elements [Given, Then, When, And] <*>
@@ -71,14 +76,23 @@ instance Arbitrary StepText where
                                        
   
 instance Arbitrary BlockArg where
-  arbitrary = oneof [table,  pystring]
+  arbitrary = oneof [table]
     where
       table = BlockTable <$> arbitrary
-      pystring = fmap BlockPystring $ listOf $ elements $ 
-                 ['a' .. 'z'] ++ "\t\n -_.,'\""
       
 instance Arbitrary Table where      
-  arbitrary = Table <$> listOf1 genTag <*> listOf (listOf1 genTag)
+  arbitrary = Table <$> listOf1 genTag <*> listOf1 (listOf1 genTag)
+  shrink Table { table_headers
+               , table_values } = tail' $ Table <$> 
+                                  (table_headers : shrinkRow table_headers) <*>
+                                  (table_values : shrinkRows table_values)
+                                    where
+                                      shrinkRow [_] = []  
+                                      shrinkRow (_:as) = [as]
+                                      shrinkRow _ = error "shrinkRow"
+                                      shrinkRows [[_]] = []
+                                      shrinkRows [(_:as)] = [[as]]
+                                      shrinkRows _ = error "shrinkRows"
 
 instance Arbitrary Token where
   arbitrary = oneof [ Atom <$> genTag
