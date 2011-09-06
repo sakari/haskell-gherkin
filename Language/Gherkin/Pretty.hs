@@ -27,17 +27,18 @@ prettyScenario Scenario { scenario_name
 prettyScenario ScenarioOutline {} = error "tbd"                            
                             
 prettyStep :: Step -> Doc
-prettyStep (Given s) = text "Given" <+> prettyStepText s
-prettyStep (Then s) = text "Then" <+> prettyStepText s
-prettyStep (When s) = text "When" <+> prettyStepText s
-prettyStep (And s) = text "And" <+> prettyStepText s
+prettyStep (Given s) = prettyStepText "Given" s
+prettyStep (Then s) = prettyStepText "Then" s
+prettyStep (When s) = prettyStepText "When" s
+prettyStep (And s) =  prettyStepText "And" s
 
-prettyStepText :: StepText -> Doc
-prettyStepText (StepText tokens maybeBlock) = 
-  (hsep $ map prettyToken tokens ) <> maybe empty go maybeBlock 
-  where
-    go block = text ":" $+$ prettyBlock block
-
+prettyStepText :: String -> StepText -> Doc
+prettyStepText key (StepText tokens Nothing) = 
+  text key <+> (hsep $ map prettyToken tokens)
+prettyStepText key (StepText tokens (Just arg)) =   
+  (text key <+> (hsep $ map prettyToken tokens) <> text ":") $+$ 
+  prettyBlock arg
+  
 prettyBlock :: BlockArg -> Doc
 prettyBlock (BlockPystring str) = 
   text "\"\"\"" $+$ 
@@ -51,8 +52,7 @@ prettyBlock (BlockTable table) = prettyTable table
 
 prettyTable :: Table -> Doc
 prettyTable Table { table_headers, table_values } = 
-  prettyRow table_headers $+$ 
-  (vcat $ map prettyRow table_values)
+  vcat $ map prettyRow $ table_headers:table_values
       
 prettyRow :: [String] -> Doc
 prettyRow rs = text "|" <+> 

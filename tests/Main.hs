@@ -42,12 +42,12 @@ prettyTests = [
   , testProperty "Scenario" $ \s -> 
    prop parseScenario (render $ prettyScenario s) =.= s
    
-  , testProperty "StepText" $ \s ->
-   prop parseStepText (render $ prettyStepText s) =.= s
-   
   , testProperty "BlockText" $ \b ->
    prop parseBlockText (render $ prettyBlock b) =.= b
   
+  , testProperty "Table argument is not indented at all" $ 
+    let s = Given $ StepText [Atom "a"] $ Just $ BlockTable $ Table ["a"] [["b"]]
+    in (render $ prettyStep s) =.= "Given a:\n| a |\n| b |"
   ]
 
 tests :: [Test]
