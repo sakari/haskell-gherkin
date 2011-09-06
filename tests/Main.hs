@@ -47,11 +47,28 @@ prettyTests = [
    
   , testProperty "BlockText" $ \b ->
    prop parseBlockText (render $ prettyBlock b) =.= b
+  
   ]
 
 tests :: [Test]
 tests = [
-  testProperty "parse table" $
+  testProperty "parse a row" $
+  prop parseRow "|a|b|" =.= ["a", "b"]
+  
+  , testProperty "roundtrip for scenario with tables" $ 
+    let s = Scenario {scenario_name = ""
+                     , scenario_steps = 
+                       [Given (StepText [Atom "c"] 
+                             (Just (BlockTable (Table {table_headers = ["y"]
+                                                      , table_values = [["p"]]
+                                                      })
+                                   )
+                             ))
+                       ,Given (StepText [Atom "n"] Nothing)
+                       ]}
+    in prop parseScenario (render $ prettyScenario s) =.= s
+       
+  , testProperty "parse table" $
   prop parseTable "| a | b |\n|c | d|" =.= 
   Table { table_headers = [ "a", "b"  ]  
         , table_values =  [[ "c", "d" ]]

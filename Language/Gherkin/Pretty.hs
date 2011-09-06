@@ -51,10 +51,11 @@ prettyBlock (BlockTable table) = prettyTable table
 
 prettyTable :: Table -> Doc
 prettyTable Table { table_headers, table_values } = 
-  row table_headers $+$ 
-  (vcat $ map row table_values)
-    where
-      row rs = text "|" <+> 
+  prettyRow table_headers $+$ 
+  (vcat $ map prettyRow table_values)
+      
+prettyRow :: [String] -> Doc
+prettyRow rs = text "|" <+> 
                hsep (punctuate (text " | ") $ map text rs) <+> 
                text "|"
 

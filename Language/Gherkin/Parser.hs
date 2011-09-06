@@ -69,7 +69,7 @@ parseScenarioOutline = scenarioOutline <?> "scenario outline"
     scenarioOutline = do
       try $ ws >> string_ "Scenario-outline:"
       name <- parseLine
-      steps <- many $ try $ line parseStep
+      steps <- many parseStep
       table <- parseTable
       return $ ScenarioOutline { scenario_name = name
                                , scenario_steps = steps
@@ -82,7 +82,7 @@ parseScenario = scenario <?> "scenario"
     scenario = do
       try $ ws >> string_ "Scenario:"
       name <- parseLine
-      steps <- many $ parseStep
+      steps <- many parseStep
       spaces_
       return $ Scenario { scenario_name = name
                         , scenario_steps = steps
@@ -117,12 +117,11 @@ parseTable = do
                  }
   
 parseRow :: Parser [String]
-parseRow = fmap (map strip) $ line $ char '|' >> endBy go (char '|')
-  where
-    go = try $ do
-      r <- many (noneOf "|\n")
-      lookAhead $ string_ "|"
-      return r
+parseRow = do
+  try $ ws >> string_ "|"
+  r <- endBy1 (many1 $ noneOf "|\n") $ string "|"
+  ws >> lineEnd
+  return $ fmap strip r
 
 parseBlockText :: Parser BlockArg
 parseBlockText = parsePystring <|> parseBlockTable
