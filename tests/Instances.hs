@@ -67,7 +67,10 @@ instance Arbitrary Step where
   shrink (And steps) = [Given steps] ++ (And <$> shrink steps)
   
 
-instance Arbitrary Background
+instance Arbitrary Background where
+  arbitrary = Background <$> listOf1 arbitrary
+  shrink (Background steps) = tail' $ Background <$> filter (not . null) (steps:shrink steps)
+    
 instance Arbitrary StepText where
   arbitrary = smaller $ 
     StepText <$> smaller (listOf1 arbitrary) <*> arbitrary
@@ -109,7 +112,7 @@ instance Arbitrary Feature where
   arbitrary = Feature <$> smaller (listOf genTag) <*> 
               smaller genName <*>
               smaller genDescription <*>
-              return Nothing <*>
+              smaller arbitrary <*>
               smaller arbitrary
   shrink Feature {
     feature_tags

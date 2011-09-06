@@ -12,7 +12,7 @@ parseFeature = do
   string_ "Feature:"
   name <- parseLine
   description <- parseDescription
-  background <- return Nothing -- optionMaybe parseBackground  
+  background <- optionMaybe parseBackground  
   scenarios <- many (parseScenario <|> parseScenarioOutline)
   eof
   return $ Feature { feature_tags = tags
@@ -42,7 +42,7 @@ parseDescription = fmap concat $ description
   
 parseBackground :: Parser Background
 parseBackground = do
-  string_ "Background:"
+  line $ string_ "Background:"
   Background `fmap` many1 parseStep
   
 parseStep :: Parser Step
