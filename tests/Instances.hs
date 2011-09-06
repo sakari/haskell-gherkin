@@ -48,6 +48,9 @@ genDescription = do
   e <- elements descChars
   return $ h:t ++ [e]
 
+smaller :: Gen a -> Gen a
+smaller gen = sized $ \s -> resize (s `div` 2) gen
+
 instance Arbitrary Scenario where
   arbitrary = Scenario <$> genName <*> arbitrary
   shrink (Scenario name steps) = tail' $ Scenario <$> 
@@ -57,8 +60,7 @@ instance Arbitrary Scenario where
     error "tbd: arbitrary scenariooutline"
   
 instance Arbitrary Step where
-  arbitrary = elements [Given, Then, When, And] <*>
-              arbitrary
+  arbitrary = elements [Given, Then, When, And] <*> arbitrary
   shrink (Given steps) = Given <$> shrink steps
   shrink (Then steps) = [Given steps] ++ (Then <$> shrink steps)
   shrink (When steps) = [Given steps] ++ (When <$> shrink steps)
@@ -67,7 +69,8 @@ instance Arbitrary Step where
 
 instance Arbitrary Background
 instance Arbitrary StepText where
-  arbitrary = StepText <$> listOf1 arbitrary <*> arbitrary
+  arbitrary = smaller $ 
+    StepText <$> smaller (listOf1 arbitrary) <*> arbitrary
   shrink (StepText tokens block) = filter noEmptySteps $ tail' $ StepText 
                                    <$> (tokens : shrink tokens) 
                                    <*> (block : shrink block)
@@ -76,7 +79,7 @@ instance Arbitrary StepText where
                                        
   
 instance Arbitrary BlockArg where
-  arbitrary = oneof [table]
+  arbitrary = smaller $ oneof [table]
     where
       table = BlockTable <$> arbitrary
       
@@ -95,18 +98,18 @@ instance Arbitrary Table where
                                       shrinkRows _ = error "shrinkRows"
 
 instance Arbitrary Token where
-  arbitrary = oneof [ Atom <$> genTag
-                    , Var <$> genTag
-                    ]
+  arbitrary = smaller $ oneof [ Atom <$> genTag
+                              , Var <$> genTag
+                              ]
   shrink (Atom atom) = tail' $ Atom <$> (atom : shrinkTag atom)
   shrink (Var atom) = [Atom atom] ++ (tail' $ Var <$> (atom : shrinkTag atom))
 
 instance Arbitrary Feature where
-  arbitrary = Feature <$> listOf genTag <*> 
-              genName <*>
-              genDescription <*>
+  arbitrary = Feature <$> smaller (listOf genTag) <*> 
+              smaller genName <*>
+              smaller genDescription <*>
               return Nothing <*>
-              arbitrary
+              smaller arbitrary
   shrink Feature {
     feature_tags
     , feature_name
