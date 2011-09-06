@@ -79,8 +79,9 @@ instance Arbitrary StepText where
                                        
   
 instance Arbitrary BlockArg where
-  arbitrary = smaller $ oneof [table]
+  arbitrary = smaller $ oneof [table, pystring]
     where
+      pystring = BlockPystring <$> arbitrary
       table = BlockTable <$> arbitrary
       
 instance Arbitrary Table where      
