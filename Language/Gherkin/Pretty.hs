@@ -54,7 +54,7 @@ prettyStepText key (StepText tokens Nothing) =
   text key <+> (hsep $ map prettyToken tokens)
 prettyStepText key (StepText tokens (Just arg)) =   
   (text key <+> (hsep $ map prettyToken tokens) <> text ":") $+$ 
-  prettyBlock arg
+  (nest 4 $ prettyBlock arg)
   
 prettyBlock :: BlockArg -> Doc
 prettyBlock (BlockPystring str) = 

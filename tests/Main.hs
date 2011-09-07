@@ -27,7 +27,7 @@ prop p str = case parse (p >>= \r -> eof >> return r) "" str of
   Right l -> l
   
 (=.=) :: (Show a, Eq a) => a -> a -> Bool
-l =.= r | l /= r = error $ "Expected '"  ++ show r ++ "'\nGot '" ++ show l
+l =.= r | l /= r = error $ "Expected '"  ++ show r ++ "'\nGot '" ++ show l ++ "'"
         | otherwise = True
                       
 
@@ -44,10 +44,6 @@ prettyTests = [
    
   , testProperty "BlockText" $ \b ->
    prop parseBlockText (render $ prettyBlock b) =.= b
-  
-  , testProperty "Table argument is not indented at all" $ 
-    let s = Given $ StepText [Atom "a"] $ Just $ BlockTable $ Table ["a"] [["b"]]
-    in (render $ prettyStep s) =.= "Given a:\n| a |\n| b |"
   ]
 
 tests :: [Test]
