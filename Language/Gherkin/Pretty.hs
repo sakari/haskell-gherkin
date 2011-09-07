@@ -39,7 +39,7 @@ prettyScenario ScenarioOutline { scenario_name
   (nest 4 $
    vcat $ map prettyStep scenario_steps ++
    [text "Scenarios:"
-   , prettyTable scenario_table
+   , nest 4 $ prettyTable scenario_table
    ]
   )
                             
