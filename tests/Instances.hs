@@ -77,7 +77,7 @@ instance Arbitrary Background where
     
 instance Arbitrary StepText where
   arbitrary = smaller $ 
-    StepText <$> smaller (listOf1 arbitrary) <*> arbitrary
+    StepText <$> listOf1 arbitrary <*> arbitrary
   shrink (StepText tokens block) = filter noEmptySteps $ tail' $ StepText 
                                    <$> (tokens : shrink tokens) 
                                    <*> (block : shrink block)
