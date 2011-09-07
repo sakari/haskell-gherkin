@@ -50,10 +50,10 @@ prettyStep (When s) = prettyStepText "When" s
 prettyStep (And s) =  prettyStepText "And" s
 
 prettyStepText :: String -> StepText -> Doc
-prettyStepText key (StepText tokens Nothing) = 
-  text key <+> (hsep $ map prettyToken tokens)
-prettyStepText key (StepText tokens (Just arg)) =   
-  (text key <+> (hsep $ map prettyToken tokens) <> text ":") $+$ 
+prettyStepText key (StepText step Nothing) = 
+  text key <+> text step
+prettyStepText key (StepText step (Just arg)) =   
+  (text key <+> text step  <> text ":") $+$ 
   (nest 4 $ prettyBlock arg)
   
 prettyBlock :: BlockArg -> Doc
@@ -76,7 +76,3 @@ prettyRow rs = text "|" <+>
                hsep (punctuate (text " | ") $ map text rs) <+> 
                text "|"
 
-prettyToken :: Token -> Doc
-prettyToken (Atom str) = text str 
-prettyToken (Var str) = text $ "<" ++ str ++ ">"
-  

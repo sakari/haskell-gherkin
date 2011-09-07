@@ -54,13 +54,13 @@ tests = [
   , testProperty "roundtrip for scenario with tables" $ 
     let s = Scenario {scenario_name = ""
                      , scenario_steps = 
-                       [Given (StepText [Atom "c"] 
+                       [Given (StepText "c" 
                              (Just (BlockTable (Table {table_headers = ["y"]
                                                       , table_values = [["p"]]
                                                       })
                                    )
                              ))
-                       ,Given (StepText [Atom "n"] Nothing)
+                       ,Given (StepText "n" Nothing)
                        ]}
     in prop parseScenario (render $ prettyScenario s) =.= s
        
@@ -76,7 +76,7 @@ tests = [
               [ScenarioOutline { scenario_name = "scenario"
                                , scenario_steps = 
                                  [Given $ StepText 
-                                  [Atom "bar"] Nothing] 
+                                  "bar" Nothing] 
                                , scenario_table = 
                                  Table { table_headers = 
                                             ["header"]
@@ -88,7 +88,7 @@ tests = [
     
   , testProperty "parse block argument to step" $
     prop parseStep "Given step:\n| a |\n| b|" =.=
-    Given (StepText [Atom "step"]
+    Given (StepText "step"
            $ Just $ BlockTable $ 
            Table { table_headers = ["a"]
                  , table_values = [["b"]]
@@ -139,10 +139,8 @@ tests = [
       feature_scenarios = [ Scenario { scenario_name = "a scenario"
                                      , scenario_steps = 
                                        [Given 
-                                        (StepText [Atom "first"
-                                                  , Atom "step"] Nothing)
-                                       , Then (StepText [Atom "second"
-                                                        , Atom "step"] Nothing)
+                                        (StepText "first step" Nothing)
+                                       , Then (StepText "second step" Nothing)
                                        ]
                                      } ]
       }

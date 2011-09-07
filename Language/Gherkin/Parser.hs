@@ -92,22 +92,14 @@ parseScenario = scenario
 parseStepText :: Parser StepText
 parseStepText = do
   ws
-  stepTokens <- parseToken `sepBy1` ws
-  ws
+  step <- many1 $ noneOf ":\n"
   block <- choice [string ":" >> 
                    ws >> newline_ >> 
                    (Just `fmap` parseBlockText)
                   , lineEnd
                     >> return Nothing
                   ]
-  return $ StepText stepTokens block
-  
-parseToken :: Parser Token
-parseToken = parseVar <|> parseAtom
-  where
-    parseVar = fmap Var $ between (string "<") (string ">") $ 
-               many $ noneOf ">"
-    parseAtom = Atom `fmap` many1 alphaNum
+  return $ StepText step block
 
 parseTable :: Parser Table
 parseTable = do

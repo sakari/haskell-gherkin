@@ -32,11 +32,7 @@ data Step = Given StepText
           | And StepText
           deriving (Show, Eq)
                    
-data StepText = StepText [Token] (Maybe BlockArg) deriving (Show, Eq)
-
-data Token = Atom String
-           | Var String
-           deriving (Show, Eq)
+data StepText = StepText String (Maybe BlockArg) deriving (Show, Eq)
                     
 data BlockArg = BlockTable Table
               | BlockPystring String

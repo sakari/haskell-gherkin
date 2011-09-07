@@ -38,6 +38,16 @@ genName = do
   e <- elements nameChars
   return $ h:t ++ [e]
 
+genStepText :: Gen String
+genStepText = do
+  h <- elements stepChars
+  t <- listOf $ elements (' ':stepChars)
+  e <- elements stepChars
+  return $ h:t ++ [e]
+  
+stepChars :: String
+stepChars = ['a' .. 'z'] ++ ['0' .. '9'] ++ "\"'-_<>()[]{}.,;"
+
 descChars :: String
 descChars = ['a' .. 'z']
 
@@ -77,9 +87,9 @@ instance Arbitrary Background where
     
 instance Arbitrary StepText where
   arbitrary = smaller $ 
-    StepText <$> listOf1 arbitrary <*> arbitrary
-  shrink (StepText tokens block) = filter noEmptySteps $ tail' $ StepText 
-                                   <$> (tokens : shrink tokens) 
+    StepText <$> genStepText <*> arbitrary
+  shrink (StepText step block) = filter noEmptySteps $ tail' $ StepText 
+                                   <$> return step 
                                    <*> (block : shrink block)
                                      where
                                        noEmptySteps (StepText ts _) = not $ null ts
@@ -104,13 +114,6 @@ instance Arbitrary Table where
                                       shrinkRows [[_]] = []
                                       shrinkRows [(_:as)] = [[as]]
                                       shrinkRows _ = error "shrinkRows"
-
-instance Arbitrary Token where
-  arbitrary = smaller $ oneof [ Atom <$> genTag
-                              , Var <$> genTag
-                              ]
-  shrink (Atom atom) = tail' $ Atom <$> (atom : shrinkTag atom)
-  shrink (Var atom) = [Atom atom] ++ (tail' $ Var <$> (atom : shrinkTag atom))
 
 instance Arbitrary Feature where
   arbitrary = Feature <$> smaller (listOf genTag) <*> 
