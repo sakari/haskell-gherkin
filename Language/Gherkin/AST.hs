@@ -26,10 +26,10 @@ data Table = Table { table_headers :: [String]
 
 data Background = Background [Step] deriving (Show, Eq)
                   
-data Step = Given StepText
-          | Then StepText
-          | When StepText
-          | And StepText
+data Step = Given { step_text :: StepText }
+          | Then { step_text :: StepText }
+          | When { step_text :: StepText }
+          | And { step_texs :: StepText }
           deriving (Show, Eq)
                    
 data StepText = StepText String (Maybe BlockArg) deriving (Show, Eq)
