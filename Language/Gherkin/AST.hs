@@ -32,7 +32,10 @@ data Step = Given { step_text :: StepText }
           | And { step_texs :: StepText }
           deriving (Show, Eq)
                    
-data StepText = StepText String (Maybe BlockArg) deriving (Show, Eq)
+data StepText = StepText { step_body :: String,  
+                           step_arg :: Maybe BlockArg 
+                         }
+              deriving (Show, Eq)
                     
 data BlockArg = BlockTable Table
               | BlockPystring String
