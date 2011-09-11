@@ -71,7 +71,7 @@ tests = [
         }
   
   , testProperty "parse scenario-outline" $ 
-    prop parseFeature "Feature: feature\nScenario-outline: scenario\nGiven bar\nScenarios:\n| header |\n|value|" =.=
+    prop parseFeature "Feature: feature\nScenario-outline: scenario\nGiven bar\nExamples:\n| header |\n|value|" =.=
     feature { feature_scenarios = 
               [ScenarioOutline { scenario_name = "scenario"
                                , scenario_steps = 

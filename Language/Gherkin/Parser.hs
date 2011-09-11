@@ -70,7 +70,7 @@ parseScenarioOutline = scenarioOutline
       try $ ws >> string_ "Scenario-outline:"
       name <- parseLine
       steps <- many parseStep
-      line $ string_ "Scenarios:"
+      line $ string_ "Examples:"
       table <- parseTable
       return $ ScenarioOutline { scenario_name = name
                                , scenario_steps = steps
