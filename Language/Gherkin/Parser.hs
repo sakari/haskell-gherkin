@@ -1,10 +1,11 @@
 module Language.Gherkin.Parser where
        
 import Language.Gherkin.AST
-import Text.Parsec
+import Text.Parsec hiding ((<|>), many)
 import Text.Parsec.String
 import Data.Char
 import Data.List
+import Control.Applicative
 
 parseFeature :: Parser Feature
 parseFeature = do
@@ -13,7 +14,7 @@ parseFeature = do
   name <- parseLine
   description <- parseDescription
   background <- optionMaybe parseBackground  
-  scenarios <- many (parseScenario <|> parseScenarioOutline)
+  scenarios <- many $ (parseScenario <|> parseScenarioOutline) <* spaces
   eof
   return $ Feature { feature_tags = tags
                    , feature_name = name
@@ -157,3 +158,4 @@ ws = skipMany $ string " " <|> string "\t"
 
 strip :: String -> String
 strip = reverse . dropWhile isSpace . reverse . dropWhile isSpace
+
