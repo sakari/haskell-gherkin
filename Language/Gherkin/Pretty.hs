@@ -25,15 +25,21 @@ prettyBackground (Background steps) = text "Background:" $+$
                                        vcat $ map prettyStep steps)
 
 prettyScenario :: Scenario -> Doc
-prettyScenario Scenario { scenario_name
+prettyScenario Scenario { scenario_tags
+                        , scenario_name
                         , scenario_steps
-                        } = text "Scenario:" <+> text scenario_name $+$
-                            (nest 4 $
-                             vcat $ map prettyStep scenario_steps)
-prettyScenario ScenarioOutline { scenario_name
+                        } =
+  hsep (map (text . ("@" ++)) scenario_tags) $+$
+  text "Scenario:" <+> text scenario_name $+$
+  (nest 4 $
+   vcat $ map prettyStep scenario_steps)
+
+prettyScenario ScenarioOutline { scenario_tags
+                               , scenario_name
                                , scenario_steps
                                , scenario_table
                                } =
+  hsep (map (text . ("@" ++)) scenario_tags) $+$
   text "Scenario-outline:" <+>
   text scenario_name $+$
   (nest 4 $

@@ -10,10 +10,12 @@ data Feature = Feature { feature_tags :: [Tag]
 
 type Tag = String
 
-data Scenario = Scenario { scenario_name :: String
+data Scenario = Scenario { scenario_tags :: [Tag]
+                         , scenario_name :: String
                          , scenario_steps :: [Step]
                          }
-              | ScenarioOutline { scenario_name :: String
+              | ScenarioOutline { scenario_tags :: [Tag]
+                                , scenario_name :: String
                                 , scenario_steps :: [Step]
                                 , scenario_table :: Table
                                 }

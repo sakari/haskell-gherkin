@@ -55,7 +55,8 @@ tests = [
   prop parseRow "|a|b|" =.= ["a", "b"]
 
   , testProperty "roundtrip for scenario with tables" $
-    let s = Scenario {scenario_name = ""
+    let s = Scenario { scenario_tags = []
+                     , scenario_name = ""
                      , scenario_steps =
                        [Given (StepText "c"
                              (Just (BlockTable (Table {table_headers = ["y"]
@@ -76,7 +77,8 @@ tests = [
   , testProperty "parse scenario-outline" $
     prop parseFeature "Feature: feature\nScenario-outline: scenario\nGiven bar\nExamples:\n| header |\n|value|" =.=
     feature { feature_scenarios =
-              [ScenarioOutline { scenario_name = "scenario"
+              [ScenarioOutline { scenario_tags = []
+                               , scenario_name = "scenario"
                                , scenario_steps =
                                  [Given $ StepText
                                   "bar" Nothing]
@@ -127,9 +129,11 @@ tests = [
 
   , testProperty "allow empty scenarios" $
     prop parseFeature "Feature: feature\nScenario: empty scenario\nScenario: second empty" =.=
-    feature { feature_scenarios = [ Scenario { scenario_name = "empty scenario"
+    feature { feature_scenarios = [ Scenario { scenario_tags = []
+                                             , scenario_name = "empty scenario"
                                              , scenario_steps = []}
-                                  , Scenario { scenario_name = "second empty"
+                                  , Scenario { scenario_tags = []
+                                             , scenario_name = "second empty"
                                              , scenario_steps = []}
                                   ]}
 
@@ -139,7 +143,8 @@ tests = [
 
   , testProperty "parse feature with scenario" $
     prop parseFeature  "\nFeature: feature\nScenario: a scenario\nGiven first step\nThen second step" =.= feature {
-      feature_scenarios = [ Scenario { scenario_name = "a scenario"
+      feature_scenarios = [ Scenario { scenario_tags = []
+                                     , scenario_name = "a scenario"
                                      , scenario_steps =
                                        [Given
                                         (StepText "first step" Nothing)

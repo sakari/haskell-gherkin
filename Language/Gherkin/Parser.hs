@@ -9,7 +9,7 @@ import Control.Applicative
 
 parseFeature :: Parser Feature
 parseFeature = do
-  tags <- option [] $ line $ parseTag `sepBy` ws
+  tags <- parseTags
   string_ "Feature:"
   name <- parseLine
   description <- parseDescription
@@ -26,8 +26,11 @@ parseFeature = do
 emptyLines :: Parser ()
 emptyLines = skipMany $ try $ ws >> newline_
 
-parseTag :: Parser Tag
-parseTag = char '@' >> many1 alphaNum
+parseTags :: Parser [Tag]
+parseTags = option [] $ line $ parseTag `sepBy` ws
+  where
+    parseTag :: Parser Tag
+    parseTag = char '@' >> many1 alphaNum
 
 parseDescription :: Parser String
 parseDescription = fmap concat $ description
@@ -39,6 +42,7 @@ parseDescription = fmap concat $ description
                                     , string_ "Scenario:"
                                     , string_ "Feature:"
                                     , string_ "Background:"
+                                    , string_ "@"
                                     , eof])
 
 parseBackground :: Parser Background
@@ -68,25 +72,35 @@ parseScenarioOutline :: Parser Scenario
 parseScenarioOutline = scenarioOutline
   where
     scenarioOutline = do
-      try $ ws >> string_ "Scenario-outline:"
+      tags <- try $ parseTags `followedBy`
+              (ws >> string_ "Scenario-outline:")
       name <- parseLine
       steps <- many parseStep
       line $ string_ "Examples:"
       table <- parseTable
-      return $ ScenarioOutline { scenario_name = name
+      return $ ScenarioOutline { scenario_tags = tags
+                               , scenario_name = name
                                , scenario_steps = steps
                                , scenario_table = table
                                }
+
+followedBy :: Parser a -> Parser () -> Parser a
+followedBy p by = do
+  r <- p
+  by
+  return r
 
 parseScenario :: Parser Scenario
 parseScenario = scenario
   where
     scenario = do
-      try $ ws >> string_ "Scenario:"
+      tags <- try $ parseTags `followedBy`
+              (ws >> string_ "Scenario:")
       name <- parseLine
       steps <- many parseStep
       spaces_
-      return $ Scenario { scenario_name = name
+      return $ Scenario { scenario_tags = tags
+                        , scenario_name = name
                         , scenario_steps = steps
                         }
 
