@@ -1,5 +1,5 @@
 Name:                gherkin
-Description:	     A parser and pretty printer for Gherkin.		    
+Description:	     A parser and pretty printer for Gherkin.
 Version:             0.1
 Synopsis:            Gherkin parser in haskell
 License:             BSD3
@@ -15,9 +15,9 @@ test-suite test
   main-is: Main.hs
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
-  ghc-options: -threaded -rtsopts -Wall -fno-warn-orphans 
+  ghc-options: -threaded -rtsopts -Wall -fno-warn-orphans
   build-depends:
-    base >= 4,
+    base >= 4.5.0,
     test-framework,
     test-framework-quickcheck2,
     QuickCheck >= 2.4.0.0,
@@ -29,7 +29,7 @@ test-suite test
 source-repository head
   type: git
   location: git://github.com/sakari/haskell-gherkin.git
-  
+
 source-repository this
   type: git
   location: git://github.com/sakari/haskell-gherkin.git
@@ -38,8 +38,8 @@ source-repository this
 Library
   default-language: Haskell2010
   ghc-options: -Wall
-  exposed-modules: 
-    Language.Gherkin, 
+  exposed-modules:
+    Language.Gherkin,
     Language.Gherkin.AST,
     Language.Gherkin.Parser,
     Language.Gherkin.Pretty
@@ -47,4 +47,3 @@ Library
     base >= 4,
     parsec >= 3.1.1,
     pretty >= 1.0.2.1
-  
