@@ -1,5 +1,5 @@
 module Language.Gherkin.Parser where
-       
+
 import Language.Gherkin.AST
 import Text.Parsec hiding ((<|>), many)
 import Text.Parsec.String
@@ -9,20 +9,20 @@ import Control.Applicative
 
 parseFeature :: Parser Feature
 parseFeature = do
-  tags <- option [] $ line $ parseTag `sepBy` ws 
+  tags <- option [] $ line $ parseTag `sepBy` ws
   string_ "Feature:"
   name <- parseLine
   description <- parseDescription
-  background <- optionMaybe parseBackground  
+  background <- optionMaybe parseBackground
   scenarios <- many $ (parseScenario <|> parseScenarioOutline) <* spaces
   eof
   return $ Feature { feature_tags = tags
                    , feature_name = name
                    , feature_description = description
                    , feature_background = background
-                   , feature_scenarios = scenarios 
+                   , feature_scenarios = scenarios
                    }
-    
+
 emptyLines :: Parser ()
 emptyLines = skipMany $ try $ ws >> newline_
 
@@ -33,25 +33,25 @@ parseDescription :: Parser String
 parseDescription = fmap concat $ description
   where
     description = try (manyTill parseLine end) <?> "description"
-    end = try $ ws >> 
-          ( choice $ 
+    end = try $ ws >>
+          ( choice $
             map (lookAhead . try) $ [ string_ "Scenario-outline:"
                                     , string_ "Scenario:"
                                     , string_ "Feature:"
                                     , string_ "Background:"
                                     , eof])
-  
+
 parseBackground :: Parser Background
 parseBackground = do
   line $ string_ "Background:"
   Background `fmap` many1 parseStep
-  
+
 parseStep :: Parser Step
-parseStep = (parseGiven <|> 
+parseStep = (parseGiven <|>
              parseWhen <|>
              parseThen <|>
              parseAnd) <?> "a scenario step"
-            
+
 parseGiven :: Parser Step
 parseGiven = try (ws >> string "Given") >> Given `fmap` parseStepText
 
@@ -75,7 +75,7 @@ parseScenarioOutline = scenarioOutline
       table <- parseTable
       return $ ScenarioOutline { scenario_name = name
                                , scenario_steps = steps
-                               , scenario_table = table 
+                               , scenario_table = table
                                }
 
 parseScenario :: Parser Scenario
@@ -92,14 +92,8 @@ parseScenario = scenario
 
 parseStepText :: Parser StepText
 parseStepText = do
-  ws
-  step <- many1 $ noneOf ":\n"
-  block <- choice [string ":" >> 
-                   ws >> newline_ >> 
-                   (Just `fmap` parseBlockText)
-                  , lineEnd
-                    >> return Nothing
-                  ]
+  step <- parseLine
+  block <- optionMaybe $ try $ parseBlockText
   return $ StepText step block
 
 parseTable :: Parser Table
@@ -109,7 +103,7 @@ parseTable = do
   return $ Table { table_headers = header
                  , table_values = values
                  }
-  
+
 parseRow :: Parser [String]
 parseRow = do
   try $ ws >> string_ "|"
@@ -120,14 +114,14 @@ parseRow = do
 parseBlockText :: Parser BlockArg
 parseBlockText = parsePystring <|> parseBlockTable
   where
-    parseBlockTable = BlockTable `fmap` parseTable 
+    parseBlockTable = BlockTable `fmap` parseTable
     startOfPystring = do
       i <- many $ oneOf " \t"
-      line $ string_ "\"\"\"" 
+      line $ string_ "\"\"\""
       return i
     parsePystring =  do
       indent <- try $ startOfPystring
-      let ln = ((string_ indent >> parseWholeLine) <|> 
+      let ln = ((string_ indent >> parseWholeLine) <|>
                 (ws >> newline >> return []))
       pystrings <- manyTill ln $ (try $ line $ string_ "\"\"\"")
       return $ BlockPystring $ concat $ intersperse "\n" pystrings
@@ -140,9 +134,9 @@ parseWholeLine = manyTill anyChar $ try lineEnd
 
 parseLine :: Parser String
 parseLine = fmap strip $ parseWholeLine
-  
-spaces_ :: Parser ()            
-spaces_ = const () `fmap` spaces  
+
+spaces_ :: Parser ()
+spaces_ = const () `fmap` spaces
 
 string_ :: String -> Parser ()
 string_ s = const () `fmap` string s

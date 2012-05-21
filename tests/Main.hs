@@ -90,7 +90,7 @@ tests = [
               ]}
 
   , testProperty "parse block argument to step" $
-    prop parseStep "Given step:\n| a |\n| b|" =.=
+    prop parseStep "Given step\n| a |\n| b|" =.=
     Given (StepText "step"
            $ Just $ BlockTable $
            Table { table_headers = ["a"]
