@@ -62,8 +62,15 @@ smaller :: Gen a -> Gen a
 smaller gen = sized $ \s -> resize (s `div` 2) gen
 
 instance Arbitrary Scenario where
-  arbitrary = oneof [Scenario <$> listOf1 genTag <*> genName <*> arbitrary
-                    , ScenarioOutline <$> listOf1 genTag <*> genName <*> arbitrary <*> arbitrary
+  arbitrary = oneof [Scenario
+                     <$> listOf1 genTag
+                     <*> genName
+                     <*> smaller arbitrary
+                    , ScenarioOutline
+                      <$> listOf1 genTag
+                      <*> genName
+                      <*> smaller arbitrary
+                      <*> smaller arbitrary
                     ]
   shrink (Scenario tags name steps) =
     tail' $ Scenario tags <$>
