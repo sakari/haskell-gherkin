@@ -4,10 +4,12 @@ import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 import Text.Parsec
 import Text.Parsec.String
-import Instances ()
+import Instances (zero_pos)
 import Language.Gherkin
 import Text.PrettyPrint
 import qualified GHC.Conc as Concurrent
+import Data.Data
+import Data.Generics
 
 main :: IO ()
 main = do
@@ -22,6 +24,7 @@ feature = Feature { feature_tags = []
                   , feature_description = ""
                   , feature_background = Nothing
                   , feature_scenarios = []
+                  , feature_position = zero_pos
                   }
 
 prop :: Parser a -> String -> a
@@ -29,10 +32,13 @@ prop p str = case parse (p >>= \r -> eof >> return r) "" str of
   Left e -> error $ show e
   Right l -> l
 
-(=.=) :: (Show a, Eq a) => a -> a -> Bool
-l =.= r | l /= r = error $ "Expected '"  ++ show r ++ "'\nGot '" ++ show l ++ "'"
+(=.=) :: (Show a, Eq a, Data a) => a -> a -> Bool
+l =.= r | l' /= r' = error $ "Expected '"  ++ show r' ++ "'\nGot '" ++ show l' ++ "'"
         | otherwise = True
-
+  where
+    g = everywhere $ mkT $ (const zero_pos :: Pos -> Pos)
+    l' = g l
+    r' = g r
 
 prettyTests :: [Test]
 prettyTests = [
@@ -56,15 +62,16 @@ tests = [
 
   , testProperty "roundtrip for scenario with tables" $
     let s = Scenario { scenario_tags = []
+                     , scenario_position = zero_pos
                      , scenario_name = ""
                      , scenario_steps =
-                       [Given (StepText "c"
-                             (Just (BlockTable (Table {table_headers = ["y"]
-                                                      , table_values = [["p"]]
+                       [Given  zero_pos (StepText "c"
+                               (Just (BlockTable (Table {table_headers = ["y"]
+                                                        , table_values = [["p"]]
                                                       })
-                                   )
-                             ))
-                       ,Given (StepText "n" Nothing)
+                                     )
+                               ))
+                       ,Given zero_pos (StepText "n" Nothing)
                        ]}
     in prop parseScenario (render $ prettyScenario s) =.= s
 
@@ -78,9 +85,10 @@ tests = [
     prop parseFeature "Feature: feature\nScenario-outline: scenario\nGiven bar\nExamples:\n| header |\n|value|" =.=
     feature { feature_scenarios =
               [ScenarioOutline { scenario_tags = []
+                               , scenario_position = zero_pos
                                , scenario_name = "scenario"
                                , scenario_steps =
-                                 [Given $ StepText
+                                 [Given zero_pos $ StepText
                                   "bar" Nothing]
                                , scenario_table =
                                  Table { table_headers =
@@ -93,7 +101,7 @@ tests = [
 
   , testProperty "parse block argument to step" $
     prop parseStep "Given step\n| a |\n| b|" =.=
-    Given (StepText "step"
+    Given zero_pos (StepText "step"
            $ Just $ BlockTable $
            Table { table_headers = ["a"]
                  , table_values = [["b"]]
@@ -131,10 +139,14 @@ tests = [
     prop parseFeature "Feature: feature\nScenario: empty scenario\nScenario: second empty" =.=
     feature { feature_scenarios = [ Scenario { scenario_tags = []
                                              , scenario_name = "empty scenario"
-                                             , scenario_steps = []}
+                                             , scenario_steps = []
+                                             , scenario_position = zero_pos
+                                             }
                                   , Scenario { scenario_tags = []
                                              , scenario_name = "second empty"
-                                             , scenario_steps = []}
+                                             , scenario_steps = []
+                                             , scenario_position = zero_pos
+                                             }
                                   ]}
 
   , testProperty "parse feature description" $
@@ -146,10 +158,11 @@ tests = [
       feature_scenarios = [ Scenario { scenario_tags = []
                                      , scenario_name = "a scenario"
                                      , scenario_steps =
-                                       [Given
+                                       [Given zero_pos
                                         (StepText "first step" Nothing)
-                                       , Then (StepText "second step" Nothing)
+                                       , Then zero_pos (StepText "second step" Nothing)
                                        ]
+                                     , scenario_position = zero_pos
                                      } ]
       }
   ]

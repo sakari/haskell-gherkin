@@ -7,8 +7,17 @@ import Data.Char
 import Data.List
 import Control.Applicative
 
+get_position :: Parser Pos
+get_position = do
+  p <- getPosition
+  return $ Pos { pos_path = sourceName p
+               , pos_column = sourceColumn p
+               , pos_line = sourceLine p
+               }
+
 parseFeature :: Parser Feature
 parseFeature = do
+  pos <- get_position
   tags <- parseTags
   string_ "Feature:"
   name <- parseLine
@@ -21,6 +30,7 @@ parseFeature = do
                    , feature_description = description
                    , feature_background = background
                    , feature_scenarios = scenarios
+                   , feature_position = pos
                    }
 
 emptyLines :: Parser ()
@@ -56,22 +66,30 @@ parseStep = (parseGiven <|>
              parseThen <|>
              parseAnd) <?> "a scenario step"
 
+stepStart :: String -> Parser Pos
+stepStart step = try $ do
+  ws
+  pos <- get_position
+  string_ step
+  return pos
+
 parseGiven :: Parser Step
-parseGiven = try (ws >> string "Given") >> Given `fmap` parseStepText
+parseGiven = stepStart "Given" >>= \pos -> Given pos `fmap` parseStepText
 
 parseWhen :: Parser Step
-parseWhen = try (ws >> string "When") >> When `fmap` parseStepText
+parseWhen = stepStart "When" >>= \pos -> When pos `fmap` parseStepText
 
 parseThen :: Parser Step
-parseThen = try (ws >> string "Then") >> Then `fmap` parseStepText
+parseThen = stepStart "Then" >>= \pos -> Then pos `fmap` parseStepText
 
 parseAnd :: Parser Step
-parseAnd = try (ws >> string "And") >> And `fmap` parseStepText
+parseAnd = stepStart "And" >>= \pos -> And pos `fmap` parseStepText
 
 parseScenarioOutline :: Parser Scenario
 parseScenarioOutline = scenarioOutline
   where
     scenarioOutline = do
+      pos <- get_position
       tags <- try $ parseTags `followedBy`
               (ws >> string_ "Scenario-outline:")
       name <- parseLine
@@ -82,6 +100,7 @@ parseScenarioOutline = scenarioOutline
                                , scenario_name = name
                                , scenario_steps = steps
                                , scenario_table = table
+                               , scenario_position = pos
                                }
 
 followedBy :: Parser a -> Parser () -> Parser a
@@ -91,18 +110,18 @@ followedBy p by = do
   return r
 
 parseScenario :: Parser Scenario
-parseScenario = scenario
-  where
-    scenario = do
-      tags <- try $ parseTags `followedBy`
-              (ws >> string_ "Scenario:")
-      name <- parseLine
-      steps <- many parseStep
-      spaces_
-      return $ Scenario { scenario_tags = tags
-                        , scenario_name = name
-                        , scenario_steps = steps
-                        }
+parseScenario = do
+  pos <- get_position
+  tags <- try $ parseTags `followedBy`
+          (ws >> string_ "Scenario:")
+  name <- parseLine
+  steps <- many parseStep
+  spaces_
+  return $ Scenario { scenario_tags = tags
+                    , scenario_name = name
+                    , scenario_steps = steps
+                    , scenario_position = pos
+                    }
 
 parseStepText :: Parser StepText
 parseStepText = do
