@@ -89,30 +89,22 @@ instance Arbitrary Scenario where
     return pos
 
 instance Arbitrary Step where
-  arbitrary = elements [Given zero_pos
-                       , Then zero_pos
-                       , When zero_pos
-                       , And zero_pos]
-              <*> arbitrary
-  shrink (Given pos steps) = Given pos <$> shrink steps
-  shrink (Then pos steps) = [Given pos steps] ++ (Then pos <$> shrink steps)
-  shrink (When pos steps) = [Given pos steps] ++ (When pos <$> shrink steps)
-  shrink (And pos steps) = [Given pos steps] ++ (And pos <$> shrink steps)
-
+  arbitrary = do
+    prefix <- elements ["Given"
+                       , "Then"
+                       , "When"
+                       , "And"]
+    Step prefix zero_pos <$> smaller genStepText <*> smaller arbitrary
+  shrink Step { step_prefix, step_body, step_arg } =
+    filter (not . emptyStep) $ Step "Given" zero_pos
+    <$> shrink step_body
+    <*> shrink step_arg
+    where
+      emptyStep Step { step_body } = null step_body
 
 instance Arbitrary Background where
   arbitrary = Background <$> listOf1 arbitrary
   shrink (Background steps) = tail' $ Background <$> filter (not . null) (steps:shrink steps)
-
-instance Arbitrary StepText where
-  arbitrary = smaller $
-    StepText <$> genStepText <*> arbitrary
-  shrink (StepText step block) = filter noEmptySteps $ tail' $ StepText
-                                   <$> return step
-                                   <*> (block : shrink block)
-                                     where
-                                       noEmptySteps (StepText ts _) = not $ null ts
-
 
 instance Arbitrary BlockArg where
   arbitrary = smaller $ oneof [table, pystring]

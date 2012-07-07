@@ -61,29 +61,19 @@ parseBackground = do
   Background `fmap` many1 parseStep
 
 parseStep :: Parser Step
-parseStep = (parseGiven <|>
-             parseWhen <|>
-             parseThen <|>
-             parseAnd) <?> "a scenario step"
-
-stepStart :: String -> Parser Pos
-stepStart step = try $ do
-  ws
-  pos <- get_position
-  string_ step
-  return pos
-
-parseGiven :: Parser Step
-parseGiven = stepStart "Given" >>= \pos -> Given pos `fmap` parseStepText
-
-parseWhen :: Parser Step
-parseWhen = stepStart "When" >>= \pos -> When pos `fmap` parseStepText
-
-parseThen :: Parser Step
-parseThen = stepStart "Then" >>= \pos -> Then pos `fmap` parseStepText
-
-parseAnd :: Parser Step
-parseAnd = stepStart "And" >>= \pos -> And pos `fmap` parseStepText
+parseStep = try go <?> "a scenario step"
+  where
+    go = do
+      ws
+      pos <- get_position
+      prefix <- choice $ map string ["Given", "When", "Then", "And"]
+      body <- parseLine
+      arg <- optionMaybe $ try parseBlockText
+      return $ Step { step_prefix = prefix
+                      , step_position = pos
+                      , step_body = body
+                      , step_arg = arg
+                      }
 
 parseScenarioOutline :: Parser Scenario
 parseScenarioOutline = scenarioOutline
@@ -122,12 +112,6 @@ parseScenario = do
                     , scenario_steps = steps
                     , scenario_position = pos
                     }
-
-parseStepText :: Parser StepText
-parseStepText = do
-  step <- parseLine
-  block <- optionMaybe $ try $ parseBlockText
-  return $ StepText step block
 
 parseTable :: Parser Table
 parseTable = do

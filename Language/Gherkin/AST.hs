@@ -41,16 +41,12 @@ data Table = Table { table_headers :: [String]
 data Background = Background [Step]
                 deriving (Show, Eq, Typeable, Data)
 
-data Step = Given { step_position :: Pos, step_text :: StepText}
-          | Then { step_position :: Pos, step_text :: StepText }
-          | When { step_position :: Pos, step_text :: StepText }
-          | And { step_position :: Pos, step_text :: StepText }
+data Step = Step { step_prefix :: String
+                 , step_position :: Pos
+                 , step_body :: String
+                 , step_arg :: Maybe BlockArg
+                 }
           deriving (Show, Eq, Typeable, Data)
-
-data StepText = StepText { step_body :: String,
-                           step_arg :: Maybe BlockArg
-                         }
-              deriving (Show, Eq, Typeable, Data)
 
 data BlockArg = BlockTable Table
               | BlockPystring String

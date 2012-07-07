@@ -65,13 +65,13 @@ tests = [
                      , scenario_position = zero_pos
                      , scenario_name = ""
                      , scenario_steps =
-                       [Given  zero_pos (StepText "c"
+                       [Step "Given" zero_pos "c"
                                (Just (BlockTable (Table {table_headers = ["y"]
                                                         , table_values = [["p"]]
                                                       })
                                      )
-                               ))
-                       ,Given zero_pos (StepText "n" Nothing)
+                               )
+                       ,Step "Given" zero_pos "n" Nothing
                        ]}
     in prop parseScenario (render $ prettyScenario s) =.= s
 
@@ -88,8 +88,7 @@ tests = [
                                , scenario_position = zero_pos
                                , scenario_name = "scenario"
                                , scenario_steps =
-                                 [Given zero_pos $ StepText
-                                  "bar" Nothing]
+                                 [Step "Given" zero_pos "bar" Nothing]
                                , scenario_table =
                                  Table { table_headers =
                                             ["header"]
@@ -101,12 +100,11 @@ tests = [
 
   , testProperty "parse block argument to step" $
     prop parseStep "Given step\n| a |\n| b|" =.=
-    Given zero_pos (StepText "step"
+    (Step "Given" zero_pos "step"
            $ Just $ BlockTable $
            Table { table_headers = ["a"]
                  , table_values = [["b"]]
-                 }
-          )
+                 })
 
   , testProperty "parse table argument" $
     prop parseBlockText "| a |\n|b|" =.=
@@ -158,9 +156,8 @@ tests = [
       feature_scenarios = [ Scenario { scenario_tags = []
                                      , scenario_name = "a scenario"
                                      , scenario_steps =
-                                       [Given zero_pos
-                                        (StepText "first step" Nothing)
-                                       , Then zero_pos (StepText "second step" Nothing)
+                                       [Step "Given" zero_pos "first step" Nothing
+                                       , Step "Then" zero_pos "second step" Nothing
                                        ]
                                      , scenario_position = zero_pos
                                      } ]

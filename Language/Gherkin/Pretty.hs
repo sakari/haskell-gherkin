@@ -50,16 +50,10 @@ prettyScenario ScenarioOutline { scenario_tags
   )
 
 prettyStep :: Step -> Doc
-prettyStep Given { step_text } = prettyStepText "Given" step_text
-prettyStep Then { step_text } = prettyStepText "Then" step_text
-prettyStep When { step_text } = prettyStepText "When" step_text
-prettyStep And { step_text } =  prettyStepText "And" step_text
-
-prettyStepText :: String -> StepText -> Doc
-prettyStepText key (StepText step Nothing) =
-  text key <+> text step
-prettyStepText key (StepText step (Just arg)) =
-  (text key <+> text step) $+$
+prettyStep (Step step_prefix _step_pos step_body Nothing) =
+  text step_prefix <+> text step_body
+prettyStep (Step step_prefix _step_pos step_body (Just arg) ) =
+  (text step_prefix <+> text step_body) $+$
   (nest 4 $ prettyBlock arg)
 
 prettyBlock :: BlockArg -> Doc
