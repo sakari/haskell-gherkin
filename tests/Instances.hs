@@ -61,6 +61,7 @@ genDescription = do
 smaller :: Gen a -> Gen a
 smaller gen = sized $ \s -> resize (s `div` 2) gen
 
+zero_pos :: Pos
 zero_pos = Pos { pos_path = "path", pos_column = 0, pos_line = 0 }
 
 instance Arbitrary Scenario where
@@ -95,12 +96,12 @@ instance Arbitrary Step where
                        , "When"
                        , "And"]
     Step prefix zero_pos <$> smaller genStepText <*> smaller arbitrary
-  shrink Step { step_prefix, step_body, step_arg } =
+  shrink Step { step_body = body , step_arg = arg } =
     filter (not . emptyStep) $ Step "Given" zero_pos
-    <$> shrink step_body
-    <*> shrink step_arg
+    <$> shrink body
+    <*> shrink arg
     where
-      emptyStep Step { step_body } = null step_body
+      emptyStep = null . step_body
 
 instance Arbitrary Background where
   arbitrary = Background <$> listOf1 arbitrary
